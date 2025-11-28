@@ -75,6 +75,65 @@ CONTENT_BY_LABEL: dict[str, dict[str, list[str]]] = {
     #   "videos": ["https://youtu.be/XXXXXXXXXXX"]
     # },
 }
+labels[0] : {"texts" : ["중국식 냉면은 맛있어"], "images" : [https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTKCqmM2Zctiq9pCMYwL83Sc-SGcO81A7aRg&s]},
+labels[1] : {"texts" : ["짜장면은 맛있어"], "images" : [https://m.health.chosun.com/site/data/img_dir/2024/08/02/2024080201848_0.jpg]},
+labels[2] : {"texts" : ["짬뽕은 맛있어"], "images" : [https://i.namu.wiki/i/upNZ7cYsFsAfU0KcguO6OHMK68xC-Bj8EXxdCti61Jhjx10UCBgdK5bZCEx41-aAWcjWZ5JMKFUSaUGLC1tqWg.webp]},
+labels[3] : {"texts" : ["탕수육은 맛있어"], "image" : [https://i.namu.wiki/i/NSZu9w4DRwEPOCgPSzvs4sAZlxfMBoxZLCZQgM_O4wRH8jN0guRfBiLURu-Tno5p-Q2aw5e5gy9gLJsnYKlq8Q.webp]},thumb-wrap { position:relative; display:block; }
+.play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:60px; height:60px; border-radius:50%; background:rgba(0,0,0,.55); }
+.play:after{ content:''; border-style:solid; border-width:12px 0 12px 20px; border-color:transparent transparent transparent #fff; position:absolute; top:50%; left:50%; transform:translate(-40%,-50%); }
+.helper { color:#607D8B; font-size:.9rem; }
+.stFileUploader, .stCameraInput { border:2px dashed #1E88E5; border-radius:12px; padding:16px; background:#f5fafe; }
+</style>
+""", unsafe_allow_html=True)
+
+st.title("이미지 분류기 (Fastai) — 확률 막대 + 라벨별 고정 콘텐츠")
+
+# ======================
+# 세션 상태
+# ======================
+if "img_bytes" not in st.session_state:
+    st.session_state.img_bytes = None
+if "last_prediction" not in st.session_state:
+    st.session_state.last_prediction = None
+
+# ======================
+# 모델 로드
+# ======================
+FILE_ID = st.secrets.get("GDRIVE_FILE_ID", "1uj2lD8goJDLo9uSg_8HcT4bxnl2trPc8")
+MODEL_PATH = st.secrets.get("MODEL_PATH", "model.pkl")
+
+@st.cache_resource
+def load_model_from_drive(file_id: str, output_path: str):
+    if not os.path.exists(output_path):
+        url = f"https://drive.google.com/uc?id={file_id}"
+        gdown.download(url, output_path, quiet=False)
+    return load_learner(output_path, cpu=True)
+
+with st.spinner("🤖 모델 로드 중..."):
+    learner = load_model_from_drive(FILE_ID, MODEL_PATH)
+st.success("✅ 모델 로드 완료")
+
+labels = [str(x) for x in learner.dls.vocab]
+st.write(f"**분류 가능한 항목:** `{', '.join(labels)}`")
+st.markdown("---")
+
+# ======================
+# 라벨 이름 매핑: 여기를 채우세요!
+# 각 라벨당 최대 3개씩 표시됩니다.
+# ======================
+CONTENT_BY_LABEL: dict[str, dict[str, list[str]]] = {
+    # 예)
+    # "짬뽕": {
+    #   "texts": ["짬뽕의 특징과 유래", "국물 맛 포인트", "지역별 스타일 차이"],
+    #   "images": ["https://.../jjampong1.jpg", "https://.../jjampong2.jpg"],
+    #   "videos": ["https://youtu.be/XXXXXXXXXXX"]
+    # },
+}
+labels[0] : {"texts" : ["중국식 냉면은 맛있어"], "images" : []},
+labels[1] : {"texts" : ["짜장면은 맛있어"], "images" : []},
+labels[2] : {"texts" : ["짬뽕은 맛있어"], "images" : []},
+labels[3] : {"texts" : ["탕수육은 맛있어"], "images" : []},
+
 
 # ======================
 # 유틸
